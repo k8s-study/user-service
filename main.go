@@ -10,9 +10,13 @@ func main() {
 	db.Init()
 
 	r := gin.Default()
+
+	r.Use(db.Init())
+
 	v1 := r.Group("/v1")
 	{
 		v1.GET("/health", controllers.Health)
+		v1.POST("/signup", controllers.Signup)
 	}
 	r.Run()
 }
