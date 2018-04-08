@@ -5,6 +5,7 @@ import (
 	"github.com/k8s-study/user-service/models"
 	"net/http"
 	"github.com/jinzhu/gorm"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func Signup(c *gin.Context) {
@@ -24,6 +25,9 @@ func Signup(c *gin.Context) {
 		return
 
 	}
+
+	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(user.Password), 10)
+	user.Password = string(hashedPassword[:])
 
 	if result := db.Create(&user); result.Error != nil {
 		c.JSON(http.StatusConflict, gin.H{"message": "Email already used"})
