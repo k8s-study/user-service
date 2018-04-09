@@ -17,6 +17,7 @@ func main() {
 	{
 		v1.GET("/health", controllers.Health)
 		v1.POST("/signup", controllers.Signup)
+		v1.POST("/login", controllers.Login)
 	}
 	r.Run()
 }

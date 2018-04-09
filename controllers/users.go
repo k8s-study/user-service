@@ -37,3 +37,27 @@ func Signup(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, gin.H{"message": "user created"})
 }
+
+func Login(c *gin.Context) {
+	db := c.MustGet("DB").(*gorm.DB)
+
+	var user models.User
+
+	if c.BindJSON(&user) != nil {
+		c.JSON(http.StatusNotAcceptable, gin.H{"message": "Invalid data", "data": user})
+		c.Abort()
+		return
+	}
+
+	var matchedUser models.User
+	db.Where("email = ?", user.Email).First(&matchedUser)
+
+	if err := bcrypt.CompareHashAndPassword([]byte(matchedUser.Password), []byte(user.Password)); err != nil {
+		log.Println(err)
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Password mismatch"})
+		c.Abort()
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "user logged in"})
+}
