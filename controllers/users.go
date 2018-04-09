@@ -53,11 +53,26 @@ func Login(c *gin.Context) {
 	db.Where("email = ?", user.Email).First(&matchedUser)
 
 	if err := bcrypt.CompareHashAndPassword([]byte(matchedUser.Password), []byte(user.Password)); err != nil {
-		log.Println(err)
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Password mismatch"})
 		c.Abort()
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "user logged in"})
+}
+
+func UserInfo(c *gin.Context) {
+	db := c.MustGet("DB").(*gorm.DB)
+	id := c.Param("id")
+
+	var user models.User
+	db.Where("id = ?", id).First(&user)
+
+	if user.ID == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"message": "User not found"})
+		c.Abort()
+		return
+	}
+
+	c.JSON(http.StatusOK, user)
 }
