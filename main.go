@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/k8s-study/user-service/db"
 	"github.com/k8s-study/user-service/controllers"
+	"github.com/k8s-study/user-service/db"
 )
 
 func main() {

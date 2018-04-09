@@ -1,12 +1,19 @@
 package controllers
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/k8s-study/user-service/models"
-	"net/http"
 	"github.com/jinzhu/gorm"
+	"github.com/k8s-study/user-service/models"
 	"golang.org/x/crypto/bcrypt"
+	"net/http"
 )
+
+type Customer struct {
+	Custom_id string `json:"custom_id"`
+}
 
 func Signup(c *gin.Context) {
 	db := c.MustGet("DB").(*gorm.DB)
@@ -23,7 +30,6 @@ func Signup(c *gin.Context) {
 		c.JSON(http.StatusNotAcceptable, gin.H{"message": "User could not be created"})
 		c.Abort()
 		return
-
 	}
 
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(user.Password), 10)
@@ -31,6 +37,19 @@ func Signup(c *gin.Context) {
 
 	if result := db.Create(&user); result.Error != nil {
 		c.JSON(http.StatusConflict, gin.H{"message": "Email already used"})
+		c.Abort()
+		return
+	}
+
+	// create a customer on kong
+	url := "http://apigw-admin.pong.com/consumers"
+	customer := Customer{fmt.Sprint(user.ID)}
+	pbytes, _ := json.Marshal(customer)
+	buff := bytes.NewBuffer(pbytes)
+
+	if _, err := http.Post(url, "application/json", buff); err != nil {
+		// FIXME: rollback user from database
+		c.JSON(http.StatusBadGateway, gin.H{"message": "Something wrong"})
 		c.Abort()
 		return
 	}
