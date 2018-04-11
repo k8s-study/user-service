@@ -4,11 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"os"
+
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 	"github.com/k8s-study/user-service/models"
 	"golang.org/x/crypto/bcrypt"
-	"net/http"
 )
 
 type Customer struct {
@@ -42,7 +44,7 @@ func Signup(c *gin.Context) {
 	}
 
 	// create a customer on kong
-	url := "http://apigw-admin.pong.com/consumers"
+	url := fmt.Sprintf("%s/consumers", os.Getenv("KONG_HOST"))
 	customer := Customer{fmt.Sprint(user.ID)}
 	pbytes, _ := json.Marshal(customer)
 	buff := bytes.NewBuffer(pbytes)

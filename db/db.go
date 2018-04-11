@@ -2,6 +2,8 @@ package db
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
@@ -12,11 +14,18 @@ var db *gorm.DB
 var err error
 
 func Init() gin.HandlerFunc {
-	db, err := gorm.Open("postgres", "host=localhost port=5432 user=postgres dbname=users password=postgres sslmode=disable")
+	dbInfo := fmt.Sprintf(
+		"host=%s port=%s user=%s dbname=%s password=%s sslmode=disable",
+		os.Getenv("DB_HOST"),
+		os.Getenv("DB_PORT"),
+		os.Getenv("DB_USERNAME"),
+		os.Getenv("DB_NAME"),
+		os.Getenv("DB_PASSWORD"))
+
+	db, err := gorm.Open("postgres", dbInfo)
 	if err != nil {
 		fmt.Println(err)
 	}
-
 
 	db.AutoMigrate(&models.User{})
 

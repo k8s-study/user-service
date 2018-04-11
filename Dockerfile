@@ -10,6 +10,14 @@ ADD . $GOPATH/src/github.com/k8s-study/user-service
 
 RUN dep ensure
 
+ENV PORT 8080
+ENV DB_HOST localhost
+ENV DB_PORT 5432
+ENV DB_NAME users
+ENV DB_USERNAME postgres
+ENV DB_PASSWORD postgres
+ENV KONG_HOST http://apigw-admin.pong.com
+
 EXPOSE 8080
 
 CMD go run main.go
