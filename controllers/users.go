@@ -13,7 +13,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type Customer struct {
+type Consumer struct {
 	Custom_id string `json:"custom_id"`
 }
 
@@ -43,10 +43,10 @@ func Signup(c *gin.Context) {
 		return
 	}
 
-	// create a customer on kong
+	// create a consumer on kong
 	url := fmt.Sprintf("%s/consumers", os.Getenv("KONG_HOST"))
-	customer := Customer{fmt.Sprint(user.ID)}
-	pbytes, _ := json.Marshal(customer)
+	consumer := Consumer{fmt.Sprint(user.ID)}
+	pbytes, _ := json.Marshal(consumer)
 	buff := bytes.NewBuffer(pbytes)
 
 	if _, err := http.Post(url, "application/json", buff); err != nil {

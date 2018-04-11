@@ -1,6 +1,5 @@
 = User Service
 
-
 an example service for microservice x kubernetes study
 
 == Usage
