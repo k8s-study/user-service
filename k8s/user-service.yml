@@ -1,0 +1,75 @@
+---
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: user-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      type: db
+      service: user
+  template:
+    metadata:
+      labels:
+        type: db
+        service: user
+    spec:
+      containers:
+      - name: db
+        image: postgres:10.3
+        env:
+          - name: POSTGRES_USER
+            value: postgres
+          - name: POSTGRES_PASSWORD
+            value: postgres
+          - name: POSTGRES_DB
+            value: users
+        ports:
+          - name: user-database
+            containerPort: 5432
+            protocol: TCP
+
+---
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: user-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      type: api
+      service: user
+  template:
+    metadata:
+      labels:
+        type: api
+        service: user
+    spec:
+      containers:
+        - name: user
+          image: outsideris/k8s-study-user-service:0.2
+          env:
+          - name: PORT
+            value: "8080"
+          - name: DB_HOST
+            value: localhost
+          - name: DB_PORT
+            value: "5432"
+          - name: DB_USERNAME
+            value: postgres
+          - name: DB_PASSWORD
+            value: postgres
+          - name: KONG_HOST
+            value: "http://apigw-admin.pong.com"
+          readinessProbe:
+            httpGet:
+              path: /v1/health
+              port: 8080
+            periodSeconds: 1
+          livenessProbe:
+            httpGet:
+              path: /v1/health
+              port: 8080
+            initialDelaySeconds: 10
