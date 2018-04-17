@@ -25,7 +25,7 @@ spec:
 
 ---
 apiVersion: apps/v1
-kind: ReplicaSet
+kind: Deployment
 metadata:
   name: user-db
 spec:
@@ -41,22 +41,21 @@ spec:
         service: user
     spec:
       containers:
-      - name: db
-        image: postgres:10.3
-        env:
-          - name: POSTGRES_USER
-            value: postgres
-          - name: POSTGRES_PASSWORD
-            value: postgres
-          - name: POSTGRES_DB
-            value: users
-        ports:
-          - containerPort: 5432
-            protocol: TCP
+        - name: db
+          image: postgres:10.3
+          env:
+            - name: POSTGRES_USER
+              value: postgres
+            - name: POSTGRES_PASSWORD
+              value: postgres
+            - name: POSTGRES_DB
+              value: users
+          ports:
+            - containerPort: 5432
 
 ---
 apiVersion: apps/v1
-kind: ReplicaSet
+kind: Deployment
 metadata:
   name: user-api
 spec:
@@ -65,6 +64,12 @@ spec:
     matchLabels:
       type: api
       service: user
+  minReadySeconds: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 2
+      maxUnavailable: 1
   template:
     metadata:
       labels:
