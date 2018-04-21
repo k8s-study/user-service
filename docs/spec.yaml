@@ -2,24 +2,28 @@ openapi: 3.0.0
 info:
   title: Users API
   description: users API for microservice x kubernetes study.
-  version: 0.1.0
+  version: 0.2.0
 
 servers:
-  - url: http://127.0.0.1:8080/v1/
-    description: a local dev server  
+  - url: http://user-service/v1/
+    description: user service API
 
 paths:
+  /health:
+    get:
+      summary: health check
+
   /signup:
     post:
       summary: add a new user
       requestBody:
         required: true
         content:
-          application/x-www-form-urlencoded:
+          application/json:
             schema:
               type: object
               properties:
-                username:
+                email:
                   type: string
                 password:
                   type: string
@@ -35,19 +39,9 @@ paths:
               schema:
                 type: object
                 properties:
-                  id:
-                    type: integer
-                    description: The user ID.
-                  username:
+                  message:
                     type: string
-                    description: The username.
-                  access_token:
-                    type: string
-                    description: The access token.
-                  created_at:
-                    type: string
-                    format: date-time
-                    description: The created datetime.
+                    description: the result
 
   /login:
     post:
@@ -55,11 +49,11 @@ paths:
       requestBody:
         required: true
         content:
-          application/x-www-form-urlencoded:
+          application/json:
             schema:
               type: object
               properties:
-                username:
+                email:
                   type: string
                 password:
                   type: string
@@ -75,19 +69,9 @@ paths:
               schema:
                 type: object
                 properties:
-                  id:
-                    type: integer
-                    description: The user ID.
-                  username:
+                  message:
                     type: string
-                    description: The username.
-                  access_token:
-                    type: string
-                    description: The access token.
-                  created_at:
-                    type: string
-                    format: date-time
-                    description: The created datetime.
+                    description: the result
 
   /users/{id}:
     get:
@@ -102,30 +86,9 @@ paths:
                   id:
                     type: integer
                     description: The user ID.
-                  username:
+                  email:
                     type: string
-                    description: The username.
-                  created_at:
-                    type: string
-                    format: date-time
-                    description: The created datetime.
-
-  /tokens/{token}:
-    get:
-      summary: Check a valid user token.
-      responses:
-        '200':
-          content:
-            application/json:
-              schema: 
-                type: object
-                properties:
-                  id:
-                    type: integer
-                    description: The user ID.
-                  username:
-                    type: string
-                    description: The username.
+                    description: The email.
                   created_at:
                     type: string
                     format: date-time
