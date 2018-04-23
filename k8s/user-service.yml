@@ -78,7 +78,7 @@ spec:
     spec:
       containers:
         - name: user
-          image: outsideris/k8s-study-user-service:0.2
+          image: outsideris/k8s-study-user-service:0.3
           env:
           - name: PORT
             value: "8080"
@@ -91,7 +91,7 @@ spec:
           - name: DB_PASSWORD
             value: postgres
           - name: KONG_HOST
-            value: "http://apigw-admin.pong.com"
+            value: http://kong-apigw:10081
           readinessProbe:
             httpGet:
               path: /v1/health
@@ -105,3 +105,24 @@ spec:
           ports:
             - containerPort: 8080
               protocol: TCP
+
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: user-service-init
+spec:
+  backoffLimit: 5
+  template:
+    metadata:
+      name: user-service-init
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: kong-migration
+          name: user-service-init
+          image: outsideris/k8s-study-user-service:0.3
+          command: ["go", "run", "init.go"]
+          env:
+            - name: KONG_HOST
+              value: http://kong-apigw:10081
