@@ -9,10 +9,10 @@ import (
 )
 
 type Api struct {
-	Name         string `json:"name"`
-	Uris         string `json:"uris"`
-	Methods      string `json:"methods"`
-	Upstream_Url string `json:"upstream_url"`
+	Name        string `json:"name"`
+	Uris        string `json:"uris"`
+	Methods     string `json:"methods"`
+	UpstreamUrl string `json:"upstream_url"`
 }
 
 type Plugin struct {
@@ -53,10 +53,9 @@ func enableApi(name string) {
 }
 
 func main() {
-	createApi("user-service-health", "/v1/health", "GET")
-	createApi("user-service-signup", "/v1/signup", "POST")
-	createApi("user-service-login", "/v1/login", "POST")
-	createApi("user-service-userinfo", "/v1/users/[0-9]+", "GET")
+	createApi("user-service-health", "/user-service", "GET")
+	createApi("user-service-post", "/user-service", "POST")
+	createApi("user-service-userinfo", "/user-service/v1/users", "GET")
 
 	enableApi("user-service-userinfo")
 }
