@@ -42,6 +42,9 @@ paths:
                   message:
                     type: string
                     description: the result
+                  key:
+                    type: string
+                    description: auth token
 
   /login:
     post:
@@ -80,7 +83,7 @@ paths:
         '200':
           content:
             application/json:
-              schema: 
+              schema:
                 type: object
                 properties:
                   id:

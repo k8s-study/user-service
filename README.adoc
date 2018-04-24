@@ -2,7 +2,19 @@
 
 an example service for microservice x kubernetes study
 
-== Usage
+== Kubenetes
+Launch [Kong](https://github.com/k8s-study/kong) first and launch user service.
+
+[source, sh]
+----
+$ kubectl create -f k8s/user-service.yml
+----
+
+Reqeust to link:http://apigw.pong.com/user-service/v1/health[http://apigw.pong.com/user-service/v1/health]. The host is set in kong.
+
+See link:https://github.com/k8s-study/user-service/blob/master/docs/spec.yaml[API spec].
+
+== Local development
 
 [source, sh]
 ----
@@ -10,3 +22,5 @@ $ go run main.go
 ----
 
 Ann then connect to link:http://127.0.0.1:8080/[http://127.0.0.1:8080/].
+
+Docker imsages found in link:https://hub.docker.com/r/outsideris/k8s-study-user-service[DockerHub].
