@@ -17,6 +17,15 @@ type Consumer struct {
 	Custom_id string `json:"custom_id"`
 }
 
+type RichConsumer struct {
+	Id       string `json:"id"`
+	CustomId string `json:"custom_id"`
+	Key      string `json:"key"`
+}
+
+type Empty struct {
+}
+
 func Signup(c *gin.Context) {
 	db := c.MustGet("DB").(*gorm.DB)
 
@@ -49,14 +58,53 @@ func Signup(c *gin.Context) {
 	pbytes, _ := json.Marshal(consumer)
 	buff := bytes.NewBuffer(pbytes)
 
-	if _, err := http.Post(url, "application/json", buff); err != nil {
+	resp1, err1 := http.Post(url, "application/json", buff)
+	if err1 != nil {
 		// FIXME: rollback user from database
 		c.JSON(http.StatusBadGateway, gin.H{"message": "Something wrong"})
 		c.Abort()
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"message": "user created"})
+	defer resp1.Body.Close()
+
+	var data1 RichConsumer
+	err1 = json.NewDecoder(resp1.Body).Decode(&data1)
+	if err1 != nil {
+		// FIXME: rollback user from database
+		c.JSON(http.StatusBadGateway, gin.H{"message": "Something wrong"})
+		c.Abort()
+		return
+	}
+
+	// issue auth token
+	tokenUrl := fmt.Sprintf("%s/consumers/%s/key-auth", os.Getenv("KONG_HOST"), data1.Id)
+	consumer2 := Empty{}
+	pbytes2, _ := json.Marshal(consumer2)
+	buff2 := bytes.NewBuffer(pbytes2)
+	resp2, err2 := http.Post(tokenUrl, "application/json", buff2)
+	if err2 != nil {
+		// FIXME: rollback user from database
+		c.JSON(http.StatusBadGateway, gin.H{"message": "Something wrong"})
+		c.Abort()
+		return
+	}
+
+	defer resp2.Body.Close()
+
+	var data2 RichConsumer
+	err2 = json.NewDecoder(resp2.Body).Decode(&data2)
+	if err2 != nil {
+		// FIXME: rollback user from database
+		c.JSON(http.StatusBadGateway, gin.H{"message": "Something wrong"})
+		c.Abort()
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"message": "user created",
+		"key":     data2.Key,
+	})
 }
 
 func Login(c *gin.Context) {
