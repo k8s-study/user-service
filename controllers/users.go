@@ -101,6 +101,8 @@ func Signup(c *gin.Context) {
 		return
 	}
 
+	db.Model(&user).Update("kong_id", data1.Id)
+
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "user created",
 		"key":     data2.Key,
