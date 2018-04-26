@@ -129,7 +129,32 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "user logged in"})
+	// issue auth token
+	tokenUrl := fmt.Sprintf("%s/consumers/%s/key-auth", os.Getenv("KONG_HOST"), matchedUser.KongId)
+	consumer := Empty{}
+	pbytes, _ := json.Marshal(consumer)
+	buff := bytes.NewBuffer(pbytes)
+	resp, err := http.Post(tokenUrl, "application/json", buff)
+	if err != nil {
+		c.JSON(http.StatusBadGateway, gin.H{"message": "Something wrong"})
+		c.Abort()
+		return
+	}
+
+	defer resp.Body.Close()
+
+	var data RichConsumer
+	err = json.NewDecoder(resp.Body).Decode(&data)
+	if err != nil {
+		c.JSON(http.StatusBadGateway, gin.H{"message": "Something wrong"})
+		c.Abort()
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "user logged in",
+		"key":     data.Key,
+	})
 }
 
 func UserInfo(c *gin.Context) {

@@ -75,6 +75,9 @@ paths:
                   message:
                     type: string
                     description: the result
+                  key:
+                    type: string
+                    description: auth token
 
   /users/{id}:
     get:
