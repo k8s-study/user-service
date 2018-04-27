@@ -76,6 +76,11 @@ func Signup(c *gin.Context) {
 		c.Abort()
 		return
 	}
+	if resp1.StatusCode >= 400 {
+		c.JSON(http.StatusBadGateway, gin.H{"message": data1.CustomId})
+		c.Abort()
+		return
+	}
 
 	// issue auth token
 	tokenUrl := fmt.Sprintf("%s/consumers/%s/key-auth", os.Getenv("KONG_HOST"), data1.Id)
