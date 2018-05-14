@@ -1,10 +1,11 @@
 package controllers
 
 import (
-	"github.com/gin-gonic/gin"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 func Health(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"message": "ok"})
+	c.String(http.StatusOK, "ok")
 }

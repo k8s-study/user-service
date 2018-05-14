@@ -1,8 +1,34 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: user-service
+  annotations:
+    key-auth.plugin.konghq.com: "key-auth-plugin"
+spec:
+  rules:
+  - host: api.pongpong.io
+    http:
+      paths:
+      - path: /user-service
+        backend:
+          serviceName: user-service
+          servicePort: 80
 ---
+
+apiVersion: configuration.konghq.com/v1
+kind: KongIngress
+metadata:
+  name: user-service
+proxy:
+  path: /external
+route:
+  strip_path: true
+---
+
 apiVersion: v1
 kind: Service
 metadata:
-  name: user-db
+  name: user-service-db
 spec:
   ports:
   - port: 5432
@@ -27,7 +53,7 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: user-db
+  name: user-service-db
 spec:
   replicas: 1
   selector:
@@ -59,7 +85,7 @@ kind: Deployment
 metadata:
   name: user-service
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       type: api
@@ -78,12 +104,12 @@ spec:
     spec:
       containers:
         - name: user
-          image: outsideris/k8s-study-user-service:0.3
+          image: outsideris/k8s-study-user-service:0.4
           env:
           - name: PORT
             value: "8080"
           - name: DB_HOST
-            value: user-db
+            value: user-service-db
           - name: DB_PORT
             value: "5432"
           - name: DB_USERNAME
@@ -91,38 +117,17 @@ spec:
           - name: DB_PASSWORD
             value: postgres
           - name: KONG_HOST
-            value: http://kong-apigw:10081
+            value: http://kong-ingress-controller.kong:8001
           readinessProbe:
             httpGet:
-              path: /v1/health
+              path: /health
               port: 8080
             periodSeconds: 1
           livenessProbe:
             httpGet:
-              path: /v1/health
+              path: /health
               port: 8080
             initialDelaySeconds: 10
           ports:
             - containerPort: 8080
               protocol: TCP
-
----
-apiVersion: batch/v1
-kind: Job
-metadata:
-  name: user-service-init
-spec:
-  backoffLimit: 5
-  template:
-    metadata:
-      name: user-service-init
-    spec:
-      restartPolicy: Never
-      containers:
-        - name: kong-migration
-          name: user-service-init
-          image: outsideris/k8s-study-user-service:0.3
-          command: ["go", "run", "init.go"]
-          env:
-            - name: KONG_HOST
-              value: http://kong-apigw:10081

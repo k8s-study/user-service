@@ -2,10 +2,10 @@ openapi: 3.0.0
 info:
   title: Users API
   description: users API for microservice x kubernetes study.
-  version: 0.2.0
+  version: 0.3.0
 
 servers:
-  - url: http://user-service/v1/
+  - url: http://user-service/
     description: user service API
 
 paths:
@@ -13,7 +13,7 @@ paths:
     get:
       summary: health check
 
-  /signup:
+  /v1/signup:
     post:
       summary: add a new user
       requestBody:
@@ -46,7 +46,7 @@ paths:
                     type: string
                     description: auth token
 
-  /login:
+  /v1/login:
     post:
       summary: user login
       requestBody:
@@ -79,9 +79,36 @@ paths:
                     type: string
                     description: auth token
 
-  /users/{id}:
+  /v1/users/{id}:
     get:
       summary: Returns a user information.
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    description: The user ID.
+                  email:
+                    type: string
+                    description: The email.
+                  created_at:
+                    type: string
+                    format: date-time
+                    description: The created datetime.
+
+  /v1/user:
+    get:
+      summary: Returns a logged in user information.
+      parameters:
+        - in: header
+          name: X-Consumer-Custom-ID
+          schema:
+            type: integer
+          required: true
       responses:
         '200':
           content:
