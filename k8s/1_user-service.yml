@@ -23,20 +23,10 @@ proxy:
   path: /external
 route:
   strip_path: true
+upstream:
+  service_upstream: true
 ---
 
-apiVersion: v1
-kind: Service
-metadata:
-  name: user-service-db
-spec:
-  ports:
-  - port: 5432
-  selector:
-    type: db
-    service: user
-
----
 apiVersion: v1
 kind: Service
 metadata:
@@ -45,41 +35,12 @@ spec:
   ports:
   - port: 80
     targetPort: 8080
+    name: http
   selector:
     type: api
-    service: user
-
+    app: user-service
 ---
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: user-service-db
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      type: db
-      service: user
-  template:
-    metadata:
-      labels:
-        type: db
-        service: user
-    spec:
-      containers:
-        - name: db
-          image: postgres:10.3
-          env:
-            - name: POSTGRES_USER
-              value: postgres
-            - name: POSTGRES_PASSWORD
-              value: postgres
-            - name: POSTGRES_DB
-              value: users
-          ports:
-            - containerPort: 5432
 
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -89,7 +50,7 @@ spec:
   selector:
     matchLabels:
       type: api
-      service: user
+      app: user-service
   minReadySeconds: 1
   strategy:
     type: RollingUpdate
@@ -100,11 +61,12 @@ spec:
     metadata:
       labels:
         type: api
-        service: user
+        app: user-service
+        version: v1
     spec:
       containers:
-        - name: user
-          image: outsideris/k8s-study-user-service:0.4
+        - name: user-service
+          image: subicura/k8s-study-user-service:0.2
           env:
           - name: PORT
             value: "8080"
@@ -118,16 +80,6 @@ spec:
             value: postgres
           - name: KONG_HOST
             value: http://kong-ingress-controller.kong:8001
-          readinessProbe:
-            httpGet:
-              path: /health
-              port: 8080
-            periodSeconds: 1
-          livenessProbe:
-            httpGet:
-              path: /health
-              port: 8080
-            initialDelaySeconds: 10
           ports:
             - containerPort: 8080
               protocol: TCP

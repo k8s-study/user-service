@@ -5,14 +5,12 @@ info:
   version: 0.3.0
 
 servers:
-  - url: http://user-service/
-    description: user service API
+  - url: http://localhost:8080/external
+    description: user service external API
+  - url: http://api.pongpong.io/user-service
+    description: user service external API
 
 paths:
-  /health:
-    get:
-      summary: health check
-
   /v1/signup:
     post:
       summary: add a new user
