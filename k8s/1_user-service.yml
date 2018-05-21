@@ -80,6 +80,21 @@ spec:
             value: postgres
           - name: KONG_HOST
             value: http://kong-ingress-controller.kong:8001
+          readinessProbe:
+            exec:
+              command:
+              - curl
+              - -f
+              - http://localhost:8080/health
+            periodSeconds: 5
+          livenessProbe:
+            exec:
+              command:
+              - curl
+              - -f
+              - http://localhost:8080/health
+            initialDelaySeconds: 10
+            periodSeconds: 5
           ports:
             - containerPort: 8080
               protocol: TCP
