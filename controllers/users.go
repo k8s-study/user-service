@@ -1,14 +1,12 @@
 package controllers
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
 	"net/http"
-	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
+	"github.com/k8s-study/user-service/client"
 	"github.com/k8s-study/user-service/models"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -53,55 +51,43 @@ func Signup(c *gin.Context) {
 	}
 
 	// create a consumer on kong
-	url := fmt.Sprintf("%s/consumers", os.Getenv("KONG_HOST"))
-	consumer := Consumer{fmt.Sprint(user.ID)}
-	pbytes, _ := json.Marshal(consumer)
-	buff := bytes.NewBuffer(pbytes)
-
-	resp1, err1 := http.Post(url, "application/json", buff)
+	consumer1 := Consumer{fmt.Sprint(user.ID)}
+	client := client.NewClient(c.Request)
+	req1, err1 := client.NewRequest("POST", "/consumers", consumer1)
 	if err1 != nil {
-		// FIXME: rollback user from database
-		c.JSON(http.StatusBadGateway, gin.H{"message": "Fail to create a new consumer on kong"})
+		c.JSON(http.StatusBadRequest, gin.H{"message": err1.Error()})
 		c.Abort()
 		return
 	}
 
-	defer resp1.Body.Close()
-
 	var data1 RichConsumer
-	err1 = json.NewDecoder(resp1.Body).Decode(&data1)
+	resp1, err1 := client.Do(req1, &data1)
 	if err1 != nil {
-		// FIXME: rollback user from database
-		c.JSON(http.StatusBadGateway, gin.H{"message": "Fail to parse response during creating a new cunsumer on kong"})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Fail to create a new consumer on kong"})
 		c.Abort()
 		return
 	}
 	if resp1.StatusCode >= 400 {
-		c.JSON(http.StatusBadGateway, gin.H{"message": data1.CustomId})
+		c.JSON(http.StatusBadRequest, gin.H{"message": data1.CustomId})
 		c.Abort()
 		return
 	}
 
 	// issue auth token
-	tokenUrl := fmt.Sprintf("%s/consumers/%s/key-auth", os.Getenv("KONG_HOST"), data1.Id)
 	consumer2 := Empty{}
-	pbytes2, _ := json.Marshal(consumer2)
-	buff2 := bytes.NewBuffer(pbytes2)
-	resp2, err2 := http.Post(tokenUrl, "application/json", buff2)
+	req2, err2 := client.NewRequest("POST", fmt.Sprintf("/consumers/%s/key-auth", data1.Id), consumer2)
 	if err2 != nil {
 		// FIXME: rollback user from database
-		c.JSON(http.StatusBadGateway, gin.H{"message": "Fail to get auth token from kong"})
+		c.JSON(http.StatusBadRequest, gin.H{"message": err2.Error()})
 		c.Abort()
 		return
 	}
 
-	defer resp2.Body.Close()
-
 	var data2 RichConsumer
-	err2 = json.NewDecoder(resp2.Body).Decode(&data2)
+	_, err2 = client.Do(req2, &data2)
 	if err2 != nil {
 		// FIXME: rollback user from database
-		c.JSON(http.StatusBadGateway, gin.H{"message": "Fail to parse during get auth token from kong"})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Fail to get auth token from kong"})
 		c.Abort()
 		return
 	}
@@ -140,23 +126,18 @@ func Login(c *gin.Context) {
 	}
 
 	// issue auth token
-	tokenUrl := fmt.Sprintf("%s/consumers/%s/key-auth", os.Getenv("KONG_HOST"), matchedUser.KongId)
-	consumer := Empty{}
-	pbytes, _ := json.Marshal(consumer)
-	buff := bytes.NewBuffer(pbytes)
-	resp, err := http.Post(tokenUrl, "application/json", buff)
+	client := client.NewClient(c.Request)
+	req, err := client.NewRequest("POST", fmt.Sprintf("/consumers/%s/key-auth", matchedUser.KongId), Empty{})
 	if err != nil {
-		c.JSON(http.StatusBadGateway, gin.H{"message": "Fail to get auth token from kong"})
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		c.Abort()
 		return
 	}
 
-	defer resp.Body.Close()
-
 	var data RichConsumer
-	err = json.NewDecoder(resp.Body).Decode(&data)
+	_, err = client.Do(req, &data)
 	if err != nil {
-		c.JSON(http.StatusBadGateway, gin.H{"message": "Fail to parse during get auth token from kong"})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Fail to get auth token from kong"})
 		c.Abort()
 		return
 	}
@@ -170,6 +151,22 @@ func Login(c *gin.Context) {
 func UserInfo(c *gin.Context) {
 	db := c.MustGet("DB").(*gorm.DB)
 	id := c.Param("id")
+
+	var user models.User
+	db.Where("id = ?", id).First(&user)
+
+	if user.ID == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"message": "User not found"})
+		c.Abort()
+		return
+	}
+
+	c.JSON(http.StatusOK, user)
+}
+
+func CurrentUserInfo(c *gin.Context) {
+	db := c.MustGet("DB").(*gorm.DB)
+	id := c.Request.Header.Get("X-Consumer-Custom-ID")
 
 	var user models.User
 	db.Where("id = ?", id).First(&user)

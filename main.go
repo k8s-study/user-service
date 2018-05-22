@@ -13,12 +13,20 @@ func main() {
 
 	r.Use(db.Init())
 
-	v1 := r.Group("/v1")
+	r.GET("/health", controllers.Health)
+
+	inV1 := r.Group("/internal/v1")
 	{
-		v1.GET("/health", controllers.Health)
-		v1.POST("/signup", controllers.Signup)
-		v1.POST("/login", controllers.Login)
-		v1.GET("/users/:id", controllers.UserInfo)
+		inV1.GET("/users/:id", controllers.UserInfo)
 	}
+
+	exV1 := r.Group("/external/v1")
+	{
+		exV1.GET("/user", controllers.CurrentUserInfo)
+		exV1.GET("/users/:id", controllers.UserInfo)
+		exV1.POST("/signup", controllers.Signup)
+		exV1.POST("/login", controllers.Login)
+	}
+
 	r.Run()
 }

@@ -1,0 +1,33 @@
+openapi: 3.0.0
+info:
+  title: Users API
+  description: users API for microservice x kubernetes study.
+  version: 0.3.0
+
+servers:
+  - url: http://localhost:8080/internal
+    description: user service internal API
+  - url: http://user-service/internal
+    description: user service internal API
+
+paths:
+  /v1/users/{id}:
+    get:
+      summary: Returns a user information.
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    description: The user ID.
+                  email:
+                    type: string
+                    description: The email.
+                  created_at:
+                    type: string
+                    format: date-time
+                    description: The created datetime.
