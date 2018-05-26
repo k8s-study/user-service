@@ -5,10 +5,10 @@ info:
   version: 0.3.0
 
 servers:
-  - url: http://localhost:8080/internal
-    description: user service internal API
-  - url: http://user-service/internal
-    description: user service internal API
+  - url: http://localhost:8080/private
+    description: user service private API
+  - url: http://user-service/private
+    description: user service private API
 
 paths:
   /v1/users/{id}:

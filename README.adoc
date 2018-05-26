@@ -51,5 +51,5 @@ $ istioctl kube-inject -f k8s/1_user-service.yml | kubectl apply -f -
 
 == Swagger API
 
-- external api: http://petstore.swagger.io/?url=https%3A%2F%2Fraw.githubusercontent.com%2Fk8s-study%2Fuser-service%2Fmaster%2Fdocs%2Fexternal-spec.yaml
-- internal api: http://petstore.swagger.io/?url=https%3A%2F%2Fraw.githubusercontent.com%2Fk8s-study%2Fuser-service%2Fmaster%2Fdocs%2Finternal-spec.yaml
+- public api: http://petstore.swagger.io/?url=https%3A%2F%2Fraw.githubusercontent.com%2Fk8s-study%2Fuser-service%2Fmaster%2Fdocs%2Fpublic-spec.yaml
+- private api: http://petstore.swagger.io/?url=https%3A%2F%2Fraw.githubusercontent.com%2Fk8s-study%2Fuser-service%2Fmaster%2Fdocs%2Fprivate-spec.yaml

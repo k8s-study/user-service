@@ -15,12 +15,12 @@ func main() {
 
 	r.GET("/health", controllers.Health)
 
-	inV1 := r.Group("/internal/v1")
+	inV1 := r.Group("/private/v1")
 	{
 		inV1.GET("/users/:id", controllers.UserInfo)
 	}
 
-	exV1 := r.Group("/external/v1")
+	exV1 := r.Group("/public/v1")
 	{
 		exV1.GET("/user", controllers.CurrentUserInfo)
 		exV1.GET("/users/:id", controllers.UserInfo)

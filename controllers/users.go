@@ -61,7 +61,7 @@ func Signup(c *gin.Context) {
 	resp1, err1 := http.Post(url, "application/json", buff)
 	if err1 != nil {
 		// FIXME: rollback user from database
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Fail to create a new consumer on kong"})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Fail to create a new consumer on kong"})
 		c.Abort()
 		return
 	}
@@ -72,12 +72,12 @@ func Signup(c *gin.Context) {
 	err1 = json.NewDecoder(resp1.Body).Decode(&data1)
 	if err1 != nil {
 		// FIXME: rollback user from database
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Fail to parse response during creating a new cunsumer on kong"})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Fail to parse response during creating a new cunsumer on kong"})
 		c.Abort()
 		return
 	}
 	if resp1.StatusCode >= 400 {
-		c.JSON(http.StatusBadRequest, gin.H{"message": data1.CustomId})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": data1.CustomId})
 		c.Abort()
 		return
 	}
@@ -90,7 +90,7 @@ func Signup(c *gin.Context) {
 	resp2, err2 := http.Post(tokenUrl, "application/json", buff2)
 	if err2 != nil {
 		// FIXME: rollback user from database
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Fail to get auth token from kong"})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Fail to get auth token from kong"})
 		c.Abort()
 		return
 	}
@@ -101,7 +101,7 @@ func Signup(c *gin.Context) {
 	err2 = json.NewDecoder(resp2.Body).Decode(&data2)
 	if err2 != nil {
 		// FIXME: rollback user from database
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Fail to parse during get auth token from kong"})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Fail to parse during get auth token from kong"})
 		c.Abort()
 		return
 	}
@@ -134,7 +134,7 @@ func Login(c *gin.Context) {
 	db.Where("email = ?", user.Email).First(&matchedUser)
 
 	if err := bcrypt.CompareHashAndPassword([]byte(matchedUser.Password), []byte(user.Password)); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Password mismatch"})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Password mismatch"})
 		c.Abort()
 		return
 	}
@@ -146,7 +146,7 @@ func Login(c *gin.Context) {
 	buff := bytes.NewBuffer(pbytes)
 	resp, err := http.Post(tokenUrl, "application/json", buff)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Fail to get auth token from kong"})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Fail to get auth token from kong"})
 		c.Abort()
 		return
 	}
@@ -156,7 +156,7 @@ func Login(c *gin.Context) {
 	var data RichConsumer
 	err = json.NewDecoder(resp.Body).Decode(&data)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Fail to parse during get auth token from kong"})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Fail to parse during get auth token from kong"})
 		c.Abort()
 		return
 	}

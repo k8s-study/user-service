@@ -5,10 +5,10 @@ info:
   version: 0.3.0
 
 servers:
-  - url: http://localhost:8080/external
-    description: user service external API
+  - url: http://localhost:8080/public
+    description: user service public API
   - url: http://api.pongpong.io/user-service
-    description: user service external API
+    description: user service public API
 
 paths:
   /v1/signup:
