@@ -16,11 +16,40 @@ See link:https://github.com/k8s-study/user-service/blob/master/docs/spec.yaml[AP
 
 == Local development
 
+Install dependencies
+
+[source, sh]
+----
+$ dep ensure -v
+----
+
+Run
+
 [source, sh]
 ----
 $ go run main.go
 ----
 
+Build
+
+[source, sh]
+----
+$ docker build --force-rm=true -t [user id]/k8s-study-user-service:0.1 .
+----
+
 Ann then connect to link:http://127.0.0.1:8080/[http://127.0.0.1:8080/].
 
 Docker imsages found in link:https://hub.docker.com/r/outsideris/k8s-study-user-service[DockerHub].
+
+== Run Container
+
+[source, sh]
+---
+$ kubectl apply -f k8s/0_user-service-db.yml
+$ istioctl kube-inject -f k8s/1_user-service.yml | kubectl apply -f -
+---
+
+== Swagger API
+
+- public api: http://petstore.swagger.io/?url=https%3A%2F%2Fraw.githubusercontent.com%2Fk8s-study%2Fuser-service%2Fmaster%2Fdocs%2Fpublic-spec.yaml
+- private api: http://petstore.swagger.io/?url=https%3A%2F%2Fraw.githubusercontent.com%2Fk8s-study%2Fuser-service%2Fmaster%2Fdocs%2Fprivate-spec.yaml

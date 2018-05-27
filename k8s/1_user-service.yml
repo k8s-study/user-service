@@ -1,0 +1,118 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: user-service
+  annotations:
+    key-auth.plugin.konghq.com: "key-auth-plugin"
+    cors.plugin.konghq.com: "cors-plugin"
+spec:
+  rules:
+  - host: api.pongpong.io
+    http:
+      paths:
+      - path: /user-service
+        backend:
+          serviceName: user-service
+          servicePort: 80
+---
+
+apiVersion: configuration.konghq.com/v1
+kind: KongIngress
+metadata:
+  name: user-service
+proxy:
+  path: /public
+route:
+  strip_path: true
+upstream:
+  service_upstream: true
+---
+
+apiVersion: config.istio.io/v1alpha1
+kind: RouteRule
+metadata:
+ name: user-service-rewrite-rule
+spec:
+  destination:
+    service: kong-proxy.kong.svc.cluster.local
+  match:
+    request:
+      headers:
+        uri:
+          prefix: /user-service
+  rewrite:
+    authority: api.pongpong.io
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-service
+spec:
+  ports:
+  - port: 80
+    targetPort: 8080
+    name: http
+  selector:
+    type: api
+    app: user-service
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      type: api
+      app: user-service
+      version: v1
+  minReadySeconds: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 2
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        type: api
+        app: user-service
+        version: v1
+    spec:
+      containers:
+        - name: user-service
+          image: subicura/k8s-study-user-service:0.4
+          env:
+          - name: PORT
+            value: "8080"
+          - name: DB_HOST
+            value: user-service-db
+          - name: DB_PORT
+            value: "5432"
+          - name: DB_USERNAME
+            value: postgres
+          - name: DB_PASSWORD
+            value: postgres
+          - name: KONG_HOST
+            value: http://kong-ingress-controller.kong:8001
+          readinessProbe:
+            exec:
+              command:
+              - curl
+              - -f
+              - http://localhost:8080/health
+            periodSeconds: 5
+          livenessProbe:
+            exec:
+              command:
+              - curl
+              - -f
+              - http://localhost:8080/health
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          ports:
+            - containerPort: 8080
+              protocol: TCP
