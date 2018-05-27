@@ -28,7 +28,7 @@ upstream:
   service_upstream: true
 ---
 
-apiVersion: config.istio.io/v1alpha1
+apiVersion: config.istio.io/v1alpha2
 kind: RouteRule
 metadata:
  name: user-service-rewrite-rule
