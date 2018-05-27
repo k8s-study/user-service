@@ -4,6 +4,7 @@ metadata:
   name: user-service
   annotations:
     key-auth.plugin.konghq.com: "key-auth-plugin"
+    cors.plugin.konghq.com: "cors-plugin"
 spec:
   rules:
   - host: api.pongpong.io
@@ -25,6 +26,22 @@ route:
   strip_path: true
 upstream:
   service_upstream: true
+---
+
+apiVersion: config.istio.io/v1alpha1
+kind: RouteRule
+metadata:
+ name: user-service-rewrite-rule
+spec:
+  destination:
+    service: kong-proxy.kong.svc.cluster.local
+  match:
+    request:
+      headers:
+        uri:
+          prefix: /user-service
+  rewrite:
+    authority: api.pongpong.io
 ---
 
 apiVersion: v1
@@ -51,6 +68,7 @@ spec:
     matchLabels:
       type: api
       app: user-service
+      version: v1
   minReadySeconds: 1
   strategy:
     type: RollingUpdate
